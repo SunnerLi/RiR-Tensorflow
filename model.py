@@ -5,23 +5,26 @@ class CNN(object):
     def __init__(self, imgs_ph):
         self.imgs_ph = imgs_ph
 
-    def __call__(self):
         # 1 & 2 conv
         self.network = tl.layers.InputLayer(self.imgs_ph, name='cnn_input')
-        self.network = tl.layers.Conv2d(self.network, n_filter=16, name='cnn_conv1')
-        self.network = tl.layers.Conv2d(self.network, n_filter=16, name='cnn_conv2')
+        self.network = tl.layers.Conv2d(self.network, n_filter=32, act = tf.nn.relu, name='cnn_conv1')
+        self.network = tl.layers.Conv2d(self.network, n_filter=32, act = tf.nn.relu, name='cnn_conv2')
         self.network = tl.layers.BatchNormLayer(self.network, act = tf.nn.relu, name='cnn_bn_relu_1')
         self.network = tl.layers.MaxPool2d(self.network, name='cnn_maxpool1')
 
         # 3 & 4 conv
-        self.network = tl.layers.Conv2d(self.network, n_filter=32, name='cnn_conv3')
-        self.network = tl.layers.Conv2d(self.network, n_filter=32, name='cnn_conv4')
+        self.network = tl.layers.Conv2d(self.network, n_filter=64, act = tf.nn.relu, name='cnn_conv3')
+        self.network = tl.layers.Conv2d(self.network, n_filter=64, act = tf.nn.relu, name='cnn_conv4')
         self.network = tl.layers.BatchNormLayer(self.network, act = tf.nn.relu, name='cnn_bn_relu_2')
         self.network = tl.layers.MaxPool2d(self.network, name='cnn_maxpool2')
 
         # Softmax
         self.network = tl.layers.FlattenLayer(self.network)
-        self.network = tl.layers.DenseLayer(self.network, n_units = 10, act = tf.nn.softmax, name='cnn_fc')
+        self.network = tl.layers.DenseLayer(self.network, n_units = 256, act = tf.nn.tanh, name='cnn_fc1')
+        self.network = tl.layers.DenseLayer(self.network, n_units = 10, act = tf.nn.softmax, name='cnn_fc2')
+
+    def __call__(self):
+        
         return self.network.outputs
 
 class ResNet(object):
