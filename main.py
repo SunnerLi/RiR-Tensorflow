@@ -5,22 +5,52 @@ import tensorlayer as tl
 import tensorflow as tf
 import numpy as np
 
-epoches = 200       # Epoches
-M = 5               # Monte-Carlo liked scalar
-loss = {            # Loss
-    'cnn': [],
-    'resnet': [],
-    'rir': []
-}           
+epoches = 200               # Epoches
+M = 5                       # Monte-Carlo liked scalar
+record = {
+    'loss': {               # Loss
+        'cnn': [],
+        'resnet': [],
+        'rir': []
+    },
+    'acc': {                # Accuracy
+        'cnn': [],
+        'resnet': [],
+        'rir': []
+    }
+}
+
+def recordTrainResult(cnn_loss, res_net_loss, rir_loss, cnn_acc, res_net_acc, rir_acc):
+    """
+        Append the training result into the corresponding list
+
+        Arg:    cnn_loss        - The loss value of usual CNN
+                res_net_loss    - The loss value of ResNet
+                rir_loss        - The loss value of ResNet in ResNet Network
+                cnn_acc         - The accuracy value of usual CNN
+                res_net_acc     - The accuracy value of ResNet
+                rir_acc         - The accuracy value of ResNet in ResNet Network
+                
+    """
+    global record
+    record['loss']['cnn'].append(cnn_loss)
+    record['loss']['resnet'].append(res_net_loss)
+    record['loss']['rir'].append(rir_loss) 
+    record['acc']['cnn'].append(cnn_acc)
+    record['acc']['resnet'].append(res_net_acc)
+    record['acc']['rir'].append(rir_acc)
 
 if __name__ == '__main__':
     # Load data
-    train_x, train_y, eval_x, eval_y, test_x, test_y = tl.files.load_mnist_dataset(shape=(-1, 28, 28, 1))
-    train_x -= 0.5
+    #train_x, train_y, eval_x, eval_y, test_x, test_y = tl.files.load_mnist_dataset(shape=(-1, 28, 28, 1))
+    train_x, train_y, test_x, test_y = tl.files.load_cifar10_dataset()
+    #train_x -= 0.5
+    train_x = (train_x - 127.5) / 127.5
     train_y = to_categorical(train_y)
+    print('max: ', np.max(train_x))
 
     # Construct the network
-    imgs_ph = tf.placeholder(tf.float32, [None, 28, 28, 1])
+    imgs_ph = tf.placeholder(tf.float32, [None, 32, 32, 3])
     tags_ph = tf.placeholder(tf.float32, [None, 10])
     usual_cnn = CNN(imgs_ph, tags_ph)
     res_net = ResNet(imgs_ph, tags_ph)
@@ -43,10 +73,8 @@ if __name__ == '__main__':
                 if i % 10 == 0:
                     print('iter: ', i, '\tCNN loss: ', _cnn_loss, '\tacc: ', _cnn_acc, '\tResNet loss: ', _res_net_loss, \
                         '\tacc: ', _res_net_acc, '\tRiR loss: ', _rir_loss, '\tacc: ', _rir_acc)
-                    loss['cnn'].append(_cnn_loss)
-                    loss['resnet'].append(_res_net_loss)
-                    loss['rir'].append(_rir_loss)
+                    recordTrainResult(_cnn_loss, _res_net_loss, _rir_loss, _cnn_acc, _res_net_acc, _rir_acc)
 
     # Visualize
-    loss = meanError(loss, M)
-    draw(loss)
+    record = meanError(record, M)
+    draw(record)
