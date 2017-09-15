@@ -7,7 +7,7 @@ import numpy as np
 
 epoches = 1                 # Epoches
 iters = 400                 # Iterators
-M = 4                       # Monte-Carlo liked scalar
+M = 2                       # Monte-Carlo liked scalar
 record = {
     'loss': {               # Loss
         'cnn': [],
@@ -43,14 +43,14 @@ def recordTrainResult(cnn_loss, res_net_loss, rir_loss, cnn_acc, res_net_acc, ri
 
 if __name__ == '__main__':
     # Load data
-    #train_x, train_y, eval_x, eval_y, test_x, test_y = tl.files.load_mnist_dataset(shape=(-1, 28, 28, 1))
-    train_x, train_y, test_x, test_y = tl.files.load_cifar10_dataset()
-    #train_x -= 0.5
-    train_x = (train_x - 127.5) / 127.5
+    train_x, train_y, eval_x, eval_y, test_x, test_y = tl.files.load_mnist_dataset(shape=(-1, 28, 28, 1))
+    #train_x, train_y, test_x, test_y = tl.files.load_cifar10_dataset()
+    train_x -= 0.5
+    #train_x = (train_x - 127.5) / 127.5
     train_y = to_categorical(train_y)
 
     # Construct the network
-    imgs_ph = tf.placeholder(tf.float32, [None, 32, 32, 3])
+    imgs_ph = tf.placeholder(tf.float32, [None, 28, 28, 1])
     tags_ph = tf.placeholder(tf.float32, [None, 10])
     usual_cnn = CNN(imgs_ph, tags_ph)
     res_net = ResNet(imgs_ph, tags_ph)
