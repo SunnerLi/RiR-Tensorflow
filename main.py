@@ -5,8 +5,9 @@ import tensorlayer as tl
 import tensorflow as tf
 import numpy as np
 
-epoches = 200               # Epoches
-M = 5                       # Monte-Carlo liked scalar
+epoches = 1                 # Epoches
+iters = 400                 # Iterators
+M = 4                       # Monte-Carlo liked scalar
 record = {
     'loss': {               # Loss
         'cnn': [],
@@ -47,7 +48,6 @@ if __name__ == '__main__':
     #train_x -= 0.5
     train_x = (train_x - 127.5) / 127.5
     train_y = to_categorical(train_y)
-    print('max: ', np.max(train_x))
 
     # Construct the network
     imgs_ph = tf.placeholder(tf.float32, [None, 32, 32, 3])
@@ -58,22 +58,23 @@ if __name__ == '__main__':
 
     # Train toward usual CNN
     with tf.Session() as sess:
-        for j in range(M):
+        for i in range(M):
             sess.run(tf.global_variables_initializer())
-            print('Scalar: ', j)
-            for i in range(epoches):
-                imgs_batch, label_batch = next_batch(train_x, train_y, batch_size=32)
-                feed_dict = {
-                    imgs_ph: imgs_batch,
-                    tags_ph: label_batch
-                }
-                _cnn_loss, _cnn_acc, _ = sess.run([usual_cnn.loss, usual_cnn.accuracy, usual_cnn.optimize], feed_dict=feed_dict)
-                _res_net_loss, _res_net_acc, _ = sess.run([res_net.loss, res_net.accuracy, res_net.optimize], feed_dict=feed_dict)
-                _rir_loss, _rir_acc, _ = sess.run([rir.loss, rir.accuracy, rir.optimize], feed_dict=feed_dict)
-                if i % 10 == 0:
-                    print('iter: ', i, '\tCNN loss: ', _cnn_loss, '\tacc: ', _cnn_acc, '\tResNet loss: ', _res_net_loss, \
-                        '\tacc: ', _res_net_acc, '\tRiR loss: ', _rir_loss, '\tacc: ', _rir_acc)
-                    recordTrainResult(_cnn_loss, _res_net_loss, _rir_loss, _cnn_acc, _res_net_acc, _rir_acc)
+            print('Scalar: ', i)
+            for j in range(epoches):
+                for k in range(iters):
+                    imgs_batch, label_batch = next_batch(train_x, train_y, batch_size=32)
+                    feed_dict = {
+                        imgs_ph: imgs_batch,
+                        tags_ph: label_batch
+                    }
+                    _cnn_loss, _cnn_acc, _ = sess.run([usual_cnn.loss, usual_cnn.accuracy, usual_cnn.optimize], feed_dict=feed_dict)
+                    _res_net_loss, _res_net_acc, _ = sess.run([res_net.loss, res_net.accuracy, res_net.optimize], feed_dict=feed_dict)
+                    _rir_loss, _rir_acc, _ = sess.run([rir.loss, rir.accuracy, rir.optimize], feed_dict=feed_dict)
+                    if k % 10 == 0:
+                        print('iter: ', k, '\tCNN loss: ', _cnn_loss, '\tacc: ', _cnn_acc, '\tResNet loss: ', _res_net_loss, \
+                            '\tacc: ', _res_net_acc, '\tRiR loss: ', _rir_loss, '\tacc: ', _rir_acc)
+                        recordTrainResult(_cnn_loss, _res_net_loss, _rir_loss, _cnn_acc, _res_net_acc, _rir_acc)
 
     # Visualize
     record = meanError(record, M)
